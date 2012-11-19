@@ -1,0 +1,15 @@
+JobType = "Normal";
+CPUNumber = 4;
+
+Executable = "/usr/bin/mpi-start";
+Arguments = "-t openmpi -d TMPDIR=\"$HOME/\"  -vvv /bin/hostname";
+StdOutput = "std.out";
+StdError = "std.err";
+OutputSandbox = {"std.err","std.out"};
+
+Requirements = Member("MPI-START", other.GlueHostApplicationSoftwareRunTimeEnvironment)  && Member("OPENMPI", other.GlueHostApplicationSoftwareRunTimeEnvironment);
+outputsandboxbasedesturi="gsiftp://localhost";
+RetryCount = 0;
+ShallowRetryCount = 0;
+MyProxyServer="myproxy.cnaf.infn.it";
+

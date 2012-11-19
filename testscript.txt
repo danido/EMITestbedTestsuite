@@ -1,0 +1,12 @@
+import sys
+sys.path.append('./LIB')
+import common_conf
+import logging
+conf=common_conf.commonconf()
+conf.LOGFILE='./testlog.log'
+conf.logger_setup()
+conf.logger=logging.getLogger('EMITestbed_cli')
+conf.logger.info('provaprova')
+conf.logger.info('provaprova2')
+conf.logger.info('provaprova24')
+

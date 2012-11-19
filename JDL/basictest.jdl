@@ -1,0 +1,7 @@
+Executable    = "/bin/hostname";
+StdOutput     = "test.out";
+StdError      = "test.err";
+RetryCount = 3;
+ShallowRetryCount = 3;
+OutputSandbox = {"test.out", "test.err"};
+outputsandboxbasedesturi="gsiftp://localhost";

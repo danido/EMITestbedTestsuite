@@ -48,5 +48,5 @@ Sample class implementing a test for LFC. You can use it as a template.
 Args: takes common_conf class with global configuration 
 Requirements: 
 - module name should be in the format PRODUCTNAME_class.py  with PRODUCTNAME(conf): class defined in it
-- run_test()      method must be implemented 
-- check_results() method must be implemented
+- run_test()          method must be implemented (running the test and returning 0: OK | -1 process errors | + N test fails ) 
+- check_environment() method must be implemented (checks that testbed is properly configured and in good shape)

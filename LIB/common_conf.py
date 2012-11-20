@@ -5,6 +5,7 @@ import commands
 import string
 import logging
 import time 
+from exceptions import *
 
 class commonconf:
 
@@ -54,7 +55,8 @@ class commonconf:
                                                    'emi-demo13.cnaf.infn.it:8443/cream-pbs-qwnodessl6']
                                     },
                            
-                          'VOMS' : {'RESOURCES': 'testers.eu-emi.eu' },
+                          'VOMS' : {     'VO': 'testers.eu-emi.eu',
+				    'RESOURCES': 'emitestbed07.cnaf.infn.it' },
                       'BDII_TOP' : {'RESOURCES': 'certtb-bdii-top.cern.ch:2170'},
                       'BDII_SITE': {'RESOURCES': 'certtb-bdii-site.cern.ch:2170',
                                     'SITE_NAME': 'cert-tb-cern'
@@ -63,10 +65,8 @@ class commonconf:
                         'DCACHE' : {'RESOURCES': ['cork.desy.de']
                                    },
                                    
-                           'LFC' : {'RESOURCES': ['emi2rc-sl5-lfc.cern.ch'],
-                                        'VODIR': ['grid/testers.eu-emi.eu/'],
-                                     'LFC_HOME': [''],
-                                     'DESTPATH': ['destpathtest/file1']
+                           'LFC' : {'RESOURCES': ['emi2rc-sl5-lfc.cern.ch:grid/testers.eu-emi.eu/'],
+                                     'TESTPATH': ['destpathtest/file1']
                                    },
                         
                            'DPM' : {'RESOURCES': ['lxbra1910.cern.ch']
@@ -98,10 +98,11 @@ class commonconf:
                                                                'INFO_CE'   : 'lcg-info --list-ce --vo VOMS',
                                                                'INFO_SE'   : 'lcg-info --list-se --vo VOMS'
                                                 },
-                                   'VOMS'  :   {               'PROXYINFO' : 'voms-proxy-info -all'
+                                   'VOMS'  :   {               'PROXYINFO' : 'voms-proxy-info -all',
+                                                               'PROXYCHECK': 'voms-proxy-info -vo -exists -hours 6'
                                                 }, 
-                                   'LFC'   :   {                      'LS' : 'lfc-ls -l ENDPOINT:DESTPATH',
-                                                                   'MKDIR' : 'lfc-mkdir ENDPOINT:TESTPATH'
+                                   'LFC'   :   {                      'LS' : 'lfc-ls -l ENDPOINT',
+                                                                   'MKDIR' : 'lfc-mkdir ENDPOINT/TESTPATH'
                                                },
                           }
               
@@ -146,6 +147,25 @@ class commonconf:
         logger2.addHandler(hdlr2)
         logger2.setLevel(logging.DEBUG)
 
+   
+
+   def check_proxy(self):
+   #CHECK Existence of proxy for given VO
+       try:
+	     self.logger.info(" Checking voms proxy existence")
+	     command=str(self.UTILS_CLI['VOMS']['PROXYCHECK'])
+	     self.logger.info("Executing command:" + command)
+	     OUTPUT=self.run_command(command)
+             if OUTPUT[1].strip() != str(self.TESTBED['VOMS']['VO']):
+                 self.logger.error('A valid proxy with 6 h time duration for VO ' + str(self.TESTBED['VOMS']['VO']) + ' is required to run tests.\tValid proxy not found, exiting')
+                 raise NameError('Proxy VO detected: ' + OUTPUT[1].strip() + ' does not match the expected VOMS: ' + str(self.TESTBED['VOMS']['VO']))
+	     self.logger.info("Command Output:" + OUTPUT)
+             return 0
+       except Exception,e:
+             self.logger.error('A valid proxy for VO ' + str(self.TESTBED['VOMS']['VO']) + ' is required to run tests.\tException:' + str(e) )
+             return -1
+
+   
    def run_command(self,args,fail=0):
    # Run command "args", if "fail" is set we expect a command failure (ret code != 0)
    # If command fails (or if "fail"=1 and it not fails), exit with failure 
@@ -156,11 +176,11 @@ class commonconf:
 
         
         if fail==0 and OUTPUT[0]!=0 :
-            self.logger.info('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
-            raise RunCommandError('','Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
+            self.logger.error('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
+            raise  NameError('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
         elif fail==1 and OUTPUT[0]==0:
-            self.logger.info('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
-            raise RunCommandError('','Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
+            self.logger.error('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
+            raise NameError('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
                         
         self.logger.info('Command output:\n%s'%(OUTPUT[1]),'DEBUG')
         
@@ -183,10 +203,10 @@ class commonconf:
         
         if fail==0 and OUTPUT[0]!=0 :
             self.logger.info('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
-            raise RunCommandError('','Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
+            raise NameError('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
         elif fail==1 and OUTPUT[0]==0:
             self.logger.info('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
-            raise RunCommandError('','Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
+            raise NameError('','Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
                         
         self.logger.info('Command output:\n%s'%(OUTPUT[1]),'DEBUG')
         

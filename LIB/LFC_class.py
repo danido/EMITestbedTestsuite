@@ -1,11 +1,9 @@
 import sys
 import os
 import time
-import common
-import set
+import sets
 
-class LFC(conf):
-
+class LFC:
    '''Class implementing basic integration tests for product: LFC
       Input args: 
        - CONFFILES : Dictionary including path of files needed for tests
@@ -14,28 +12,28 @@ class LFC(conf):
        - TAGSET    : Set of TAGS defined for available tests ('ALL') is default  
    '''
 
-   def __init__(self):
+   def __init__(self,conf):
       self.PRODUCT = 'LFC'    
-      self.NUMHOST = len(TESTBED['LFC']['RESOURCES'])
+      self.NUMHOST = len(conf.TESTBED['LFC']['RESOURCES'])
+      self.TAGSET = set(['INTEGRATION'])
       
-   def run_test(self):
+   def run_test(self,conf):
        
       try:
-          TAGTEST1=set(['INTEGRATION'])
+          TAGTEST=set(['INTEGRATION'])
           if conf.TAGREQ.issuperset(['ALL']) or (len(TAGSET.intersection(TAGTEST1))>0) :
-             for iresources in range(0,self.NUMHOST):
+             for iresource in range(0,self.NUMHOST):
                      try: 
 			     # TEST1
 			     conf.logger.info(" LFC_TEST1, TAGS : " + str(TAGTEST1))
 			     conf.logger.info(" LFC_TEST : listing directory")
 			     command=str(conf.UTILS_CLI['LFC']['LS'])
 			     command=command.replace('ENDPOINT',str(conf.TESTBED['LFC']['RESOURCES'][iresource]))
-			     command=command.replace('DESTPATH',str(conf.TESTBED['LFC']['VODIR'][iresource]))
 			     conf.logger.info("Executing command:" + command)
 			     OUTPUT=conf.run_command(command)
 			     conf.logger.info("Command Output:" + OUTPUT) 
 		     except Exception,e:
-			     conf.logger.error('Unable to run LFC_TEST1, TAGS : ' + str(TAGTEST1) '\tException:' + str(e) )
+			     conf.logger.error('Unable to run LFC_TEST1, TAGS : ' + str(TAGTEST1) + '\tException:' + str(e) )
 			    
                      try:
 			     # TEST2
@@ -49,44 +47,34 @@ class LFC(conf):
 			     OUTPUT=conf.run_command(command)
 			     conf.logger.info("Command Output:" + OUTPUT)
                      except Exception,e:
-                             conf.logger.error('Unable to run LFC_TEST2, TAGS : ' + str(TAGTEST1) '\tException:' + str(e) )
+                             conf.logger.error('Unable to run LFC_TEST2, TAGS : ' + str(TAGTEST1) + '\tException:' + str(e) )
  
 
       except Exception,e:
         conf.logger.error('Unable to run test for considered product: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
         return -1
         
+   def ckeck_environment(self,conf):
 
-
-
-   def ckeck_results(self):
-
-       try:
-          TAGTEST1=set(['INTEGRATION'])
-          if conf.TAGREQ.issuperset(['ALL']) or (len(TAGSET.intersection(TAGTEST1))>0) :
-             for iresources in range(0,self.NUMHOST):
+      #This method is meant to check testing enviroment before running the test
+      try:
+          conf.logger.debug(" CHECKING resources: ")
+          for iresource in range(0,self.NUMHOST):
                      try:
-                             # TEST1
-                             conf.loggerresults.info(" CHECK RESULTS FOR LFC_TEST1, TAGS : " + str(TAGTEST1))
-                             conf.loggerresults.info(" CHECK RESULTS FOR LFC_TEST : listing directory")
-                             conf.loggerresults.info(" TEST OK" )
+                             conf.logger.debug(" CHECKING resource: " + iresource)
+                             command=str(conf.UTILS_CLI['LFC']['LS'])
+                             command=command.replace('ENDPOINT',str(conf.TESTBED['LFC']['RESOURCES'][iresource]))
+                             conf.logger.info("Executing command:" + command)
+                             OUTPUT=conf.run_command(command)
+                             if OUTPUT[0] != 0:
+                                conf.logger.error("Unreachable resource problem: " + iresource)
+                                raise NameError("Unreachable resource problem: " + iresource)
+                                return -1
                      except Exception,e:
-                             conf.logger.error('Unable to check LFC_TEST1, TAGS : ' + str(TAGTEST1) '\tException:' + str(e) )
-                             conf.loggerresults.error(" TEST FAILS" )
-
-                            
-                     try:
-                             # TEST2
-                             conf.logger.info(" CHECK RESULTS FOR LFC_TEST2, TAGS : " + str(TAGTEST1))
-                             conf.logger.info(" CHECK RESULTS FOR LFC_TEST : listing directory")
-                             conf.logger.info(" TEST OK" )
-                     except Exception,e:
-                             conf.logger.error('Unable to run LFC_TEST2, TAGS : ' + str(TAGTEST1) '\tException:' + str(e) )
-                             conf.loggerresults.error(" TEST FAILS" )
-
+                             conf.logger.error('Unable to run LFC_TEST1, TAGS : ' + str(TAGTEST1) + '\tException:' + str(e) )
 
       except Exception,e:
-        conf.logger.error('Unable to check test results for considered product: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
+        conf.logger.error('Unable to check test environment for considered product: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
         return -1
 
 

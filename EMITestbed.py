@@ -44,7 +44,7 @@ if __name__=="__main__":
      conf.loggerresults=logging.getLogger('EMITestbed_RESULTLOG')
      conf.loggerresults.info('++++++++++++++++++++++++++++++++++++++++++++++++++')
      conf.loggerresults.info('Starting the test for product:' + conf.PRODUCTREQ )
-     conf.loggerresults.info('Test started at: ' + self.STARTTIME)
+     conf.loggerresults.info('Test started at: ' + conf.STARTTIME)
      conf.loggerresults.info('Will execute tests matching TAG:' + conf.TAGREQ )
 
      try:
@@ -56,24 +56,25 @@ if __name__=="__main__":
         sys.exit(-1)
 
      #CHECK PROXY EXISTENCE
+     if conf.check_proxy()!=0: 
+        print 'Could not find a valid proxy'
+        sys.exit(-1)
 
-     #TODO!!!!!!!!!!!
-
+     #CHECKING Testing ENV
+     try:
+        conf.logger.info('Checking testing environment')
+        testclass.ckeck_environment(conf) 
+     except Exception,e:
+        conf.logger.error('Testing environment check fails for considered product test: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
+        conf.logger.error('Please control global configuration information and testbed status')
+        sys.exit(-1)
 
      #RUNNING TEST   
      try:
         conf.logger.info('Running test')       
-        testclass.run_test() 
+        testclass.run_test(conf) 
      except Exception,e:
         conf.logger.error('Unable to run test for considered product: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
-        sys.exit(-1)
-
-     #CHECKING RESULTS
-     try:
-	conf.logger.info('Checking results')                                               
-        testclass.ckeck_results()
-     except Exception,e:
-        conf.logger.error('Unable to check results for considered product test: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
         sys.exit(-1)
 
      self.ENDTIME=time.strftime("%Y%m%d_%H%M%S", time.localtime(time.time()))

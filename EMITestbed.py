@@ -14,7 +14,7 @@ if __name__=="__main__":
      parser = optparse.OptionParser()
      for key in  conf.PRODUCTS.keys():
         use += key + ' : ' + str(conf.PRODUCTS[key]) + '\n'
-     parser.add_option("-t", "--testtag", dest="TAGSET", action="store", default= "ALL", help="TAG of subset of tests to run")
+     parser.add_option("-t", "--testtag", dest="TAGREQ", action="store", default= "ALL", help="TAG of subset of tests to run")
      parser.add_option("-f", "--file", dest="OutFilename", action="store", default=conf.STARTTIME , help="Write output to specified filepath", metavar="FILE")
      (options, args) = parser.parse_args()
 
@@ -25,13 +25,14 @@ if __name__=="__main__":
         parser.error(use)
      else:
         conf.PRODUCTREQ=args[0]
-     if options.TAGSET:  
-        if (options.TAGSET in conf.PRODUCTS[args[0]] == False):
+     conf.TAGREQ=set()
+     if options.TAGREQ:  
+        if (options.TAGREQ in conf.PRODUCTS[args[0]] == False):
            parser.error(use)
         else:
-           conf.TAGREQ=options.TAGSET
+           conf.TAGREQ.add(options.TAGREQ)
      else:
-        conf.TAGREQ = set(['ALL'])
+        conf.TAGREQ.add(['ALL'])
      
      #INITIALIZATION
      conf.LOGFILE=options.OutFilename
@@ -39,13 +40,13 @@ if __name__=="__main__":
      conf.logger=logging.getLogger('EMITestbed_PROCESSLOG')
      conf.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++')
      conf.logger.info('Starting the test for product:' + conf.PRODUCTREQ )
-     conf.logger.info('Will execute tests matching TAG:' + conf.TAGREQ )
+     conf.logger.info('Will execute tests matching TAG:' + str( conf.TAGREQ ))
      conf.loggerresults_setup()
      conf.loggerresults=logging.getLogger('EMITestbed_RESULTLOG')
      conf.loggerresults.info('++++++++++++++++++++++++++++++++++++++++++++++++++')
      conf.loggerresults.info('Starting the test for product:' + conf.PRODUCTREQ )
      conf.loggerresults.info('Test started at: ' + conf.STARTTIME)
-     conf.loggerresults.info('Will execute tests matching TAG:' + conf.TAGREQ )
+     conf.loggerresults.info('Will execute tests matching TAG:' + str(conf.TAGREQ ))
 
      try:
         module = __import__(conf.PRODUCTREQ + '_class')
@@ -77,7 +78,7 @@ if __name__=="__main__":
         conf.logger.error('Unable to run test for considered product: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
         sys.exit(-1)
 
-     self.ENDTIME=time.strftime("%Y%m%d_%H%M%S", time.localtime(time.time()))
-     conf.logger.info('Test completed at: ' + self.ENDTIME)
-     conf.loggerresults.info('Test completed at: ' + self.ENDTIME)
+     conf.ENDTIME=time.strftime("%Y%m%d_%H%M%S", time.localtime(time.time()))
+     conf.logger.info('Test completed at: ' + conf.ENDTIME)
+     conf.loggerresults.info('Test completed at: ' + conf.ENDTIME)
      conf.logger.info('++++++++++++++++++++++++++++++++++++++++++++++++++')

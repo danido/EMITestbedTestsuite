@@ -4,7 +4,7 @@ import time
 import commands
 import string
 import logging
-import time 
+import datetime 
 from exceptions import *
 
 class commonconf:
@@ -65,8 +65,8 @@ class commonconf:
                         'DCACHE' : {'RESOURCES': ['cork.desy.de']
                                    },
                                    
-                           'LFC' : {'RESOURCES': ['emi2rc-sl5-lfc.cern.ch:grid/testers.eu-emi.eu/'],
-                                     'TESTPATH': ['destpathtest/file1']
+                           'LFC' : {'RESOURCES': ['emi2rc-sl5-lfc.cern.ch:/grid/testers.eu-emi.eu/'],
+                                     'TESTDIR': ['destpathtest']
                                    },
                         
                            'DPM' : {'RESOURCES': ['lxbra1910.cern.ch']
@@ -102,7 +102,8 @@ class commonconf:
                                                                'PROXYCHECK': 'voms-proxy-info -vo -exists -hours 6'
                                                 }, 
                                    'LFC'   :   {                      'LS' : 'lfc-ls -l ENDPOINT',
-                                                                   'MKDIR' : 'lfc-mkdir ENDPOINT/TESTPATH'
+                                                                   'MKDIR' : 'lfc-mkdir ENDPOINT/TESTDIR',
+                                                                   'RMDIR' : 'lfc-rm -r ENDPOINT/TESTDIR'
                                                },
                           }
               
@@ -151,17 +152,17 @@ class commonconf:
 
    def check_proxy(self):
    #CHECK Existence of proxy for given VO
-       try:
-	     self.logger.info(" Checking voms proxy existence")
+      try:
+	     self.logger.debug(" Checking voms proxy existence")
 	     command=str(self.UTILS_CLI['VOMS']['PROXYCHECK'])
-	     self.logger.info("Executing command:" + command)
+	     self.logger.debug("Executing command:" + command)
 	     OUTPUT=self.run_command(command)
-             if OUTPUT[1].strip() != str(self.TESTBED['VOMS']['VO']):
-                 self.logger.error('A valid proxy with 6 h time duration for VO ' + str(self.TESTBED['VOMS']['VO']) + ' is required to run tests.\tValid proxy not found, exiting')
-                 raise NameError('Proxy VO detected: ' + OUTPUT[1].strip() + ' does not match the expected VOMS: ' + str(self.TESTBED['VOMS']['VO']))
-	     self.logger.info("Command Output:" + OUTPUT)
+             if str(OUTPUT[1].strip()) != str(self.TESTBED['VOMS']['VO']):
+                self.logger.error('A valid proxy with 6 h time duration for VO ' + str(self.TESTBED['VOMS']['VO']) + ' is required to run tests.\tValid proxy not found, exiting')
+                raise NameError('Proxy VO detected: ' + str(OUTPUT[1]) + ' does not match the expected VOMS: ' + str(self.TESTBED['VOMS']['VO']))
+	     self.logger.debug("Command Output:" + str(OUTPUT[1]))
              return 0
-       except Exception,e:
+      except Exception,e:
              self.logger.error('A valid proxy for VO ' + str(self.TESTBED['VOMS']['VO']) + ' is required to run tests.\tException:' + str(e) )
              return -1
 
@@ -170,49 +171,52 @@ class commonconf:
    # Run command "args", if "fail" is set we expect a command failure (ret code != 0)
    # If command fails (or if "fail"=1 and it not fails), exit with failure 
    # returns command's output
-        self.logger.info('Run command: %s'%(args))
-
+   #     self.logger.debug('Run command: %s'%(args))
         OUTPUT=commands.getstatusoutput(args)
-
-        
         if fail==0 and OUTPUT[0]!=0 :
-            self.logger.error('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
+   #         self.logger.error('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
             raise  NameError('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
         elif fail==1 and OUTPUT[0]==0:
-            self.logger.error('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
+   #         self.logger.error('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
             raise NameError('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
-                        
-        self.logger.info('Command output:\n%s'%(OUTPUT[1]),'DEBUG')
-        
+   #     self.logger.info('Command output:\n%s'%OUTPUT[1],'DEBUG')
         if fail==0:
-            self.logger.info('Command success')
+            self.logger.debug('Command success')
         else:
-            self.logger.info('Command successfully failed')
-
-        return OUTPUT[1]
+            self.logger.debug('Command successfully failed')
+        return OUTPUT
         
-
    def run_command_until(self,args,condition,fail=0):
     # Run command "args", if "fail" is set we expect a command failure (ret code != 0)
     # If command fails (or if "fail"=1 and it not fails), exit with failure 
     # returns command's output
-        self.logger.info('Run command: %s'%(args))
-
+        self.logger.debug('Run command: %s'%(args))
         OUTPUT=commands.getstatusoutput(args)
-
-        
         if fail==0 and OUTPUT[0]!=0 :
-            self.logger.info('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
+            self.logger.error('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
             raise NameError('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
         elif fail==1 and OUTPUT[0]==0:
-            self.logger.info('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
+            self.logger.error('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
             raise NameError('','Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
-                        
-        self.logger.info('Command output:\n%s'%(OUTPUT[1]),'DEBUG')
-        
+        self.logger.debug('Command output:\n%s'%(OUTPUT[1]),'DEBUG')
         if fail==0:
-            self.logger.info('Command success')
+            self.logger.debug('Command success')
         else:
-            self.logger.info('Command successfully failed')
+            self.logger.debug('Command successfully failed')
+        return OUTPUT
 
-        return OUTPUT[1]
+   def atomic_test_exec_report(self,product,testtag,testdescription,command):
+    # Report test result 
+      self.logger.debug("PROD=" + product + " | TESTTAG=" + testtag + " | TESTDESCRIPTION=" + testdescription)
+      self.loggerresults.info("PROD=" + product + " | TESTTAG=" + testtag + " | TESTDESCRIPTION=" + testdescription)
+      self.logger.debug("Executing command:\t" + command)
+      OUTPUT=self.run_command(command)
+      self.logger.debug("Command Output:\t" + str(OUTPUT[1]))
+      if OUTPUT[0]==0:
+         self.loggerresults.info("RESULT: SUCCESS")
+         self.loggerresults.info("Command output+++++:\n" + str(OUTPUT[1]))
+      else:
+         self.loggerresults.info("RESULT: FAIL")
+         self.loggerresults.info("Command output+++++:\n" + str(OUTPUT[1]))
+      return OUTPUT[0]
+

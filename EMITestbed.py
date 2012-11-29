@@ -64,7 +64,11 @@ if __name__=="__main__":
      #CHECKING Testing ENV
      try:
         conf.logger.info('Checking testing environment')
-        testclass.ckeck_environment(conf) 
+        if testclass.ckeck_environment(conf) == -1:
+           conf.logger.error('Testing environment check fails for considered product test: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
+	   conf.logger.error('Please control global configuration information and testbed status')
+           sys.exit(-1)
+
      except Exception,e:
         conf.logger.error('Testing environment check fails for considered product test: '  + conf.PRODUCTREQ + '\t Excepion:' + str(e) )
         conf.logger.error('Please control global configuration information and testbed status')

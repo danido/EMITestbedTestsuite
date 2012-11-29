@@ -6,35 +6,34 @@ import string
 import logging
 import datetime 
 from exceptions import *
+import sets
 
 class commonconf:
 
    def __init__(self):
         #INITIALIZATION GLOBAL CONFIGURATION
         self.PRODUCTS  = { # 'PRODUCT NAME' : ['TAG1', 'TAG2'],
-                                      'LFC' : ['INTEGRATION'], 
+                                      'LFC' : ['INTEGRATION','UI'], 
                                       'DPM' : ['INTEGRATION'],
                                    'DCACHE' : ['INTEGRATION'],
-                                    'CREAM' : ['INTEGRATION'],
-                                      'WMS' : ['INTEGRATION'],
-                                   'WNODES' : ['INTEGRATION'],
-                                 'CREAMMPI' : ['INTEGRATION'],
+                                    'CREAM' : ['INTEGRATION', 'UI', 'MPI', 'WNODES'],
+                                      'WMS' : ['INTEGRATION', 'UI'],
                                  'LCGUTILS' : ['INTEGRATION'],
                                     'STORM' : ['INTEGRATION']
                          }
-        self.CONFFILES = {      'CEoutfile' : '../OUT/CEoutfile.txt',
-                                'MPIJDL'    : '../JDL/mpitest.jdl',
-                                'BASICJDL'  : '../JDL/basictest.jdl',
-                             'CEMPIoutfile' : '../OUT/CEMPIoutfile.txt',
-                               'WMSoutfile' : '../OUT/WMSoutfile.txt',
-                               'SOURCEFILE' : '../JDL/basictest.jdl'
+        self.CONFFILES = {      'CEoutfile' : './OUT/CEoutfile.txt',
+                                'MPIJDL'    : './JDL/mpitest.jdl',
+                                'BASICJDL'  : './JDL/basictest.jdl',
+                             'CEMPIoutfile' : './OUT/CEMPIoutfile.txt',
+                               'WMSoutfile' : './OUT/WMSoutfile.txt',
+                               'SOURCEFILE' : './JDL/basictest.jdl'
                            }
         self.TESTBED =   {           'CREAMCE' : {'RESOURCES':  ['emitestbed02.cnaf.infn.it:8443/cream-sge-emitesters',
-                                                   'emitestbed09.cnaf.infn.it:8443/cream-sge-emitesters',
-                                                   'emi-demo08.cnaf.infn.it:8443/cream-lsf-testers',
-                                                   'emi-demo13.cnaf.infn.it:8443/cream-pbs-demo',
-                                                   'emitestbed32.cnaf.infn.it:8443/cream-lsf-testers',
-                                                   'emitestbed29.cnaf.infn.it:8443/cream-pbs-demo'] 
+                                                                'emitestbed09.cnaf.infn.it:8443/cream-sge-emitesters',
+                                                                'emi-demo08.cnaf.infn.it:8443/cream-lsf-testers',
+                                                                'emi-demo13.cnaf.infn.it:8443/cream-pbs-demo',
+                                                                'emitestbed32.cnaf.infn.it:8443/cream-lsf-testers',
+                                                                'emitestbed29.cnaf.infn.it:8443/cream-pbs-demo'] 
                                      },
                            
                      'CREAMCE_MPI': {'RESOURCES': ['emitestbed29.cnaf.infn.it:8443/cream-pbs-demo',
@@ -72,11 +71,13 @@ class commonconf:
                            'DPM' : {'RESOURCES': ['lxbra1910.cern.ch']
                                    }
                           }
-        self.UTILS_CLI  = {       'CREAM'  :  {      'SUBMIT' : 'glite-ce-job-submit -d  -r ENDPOINT -a JDL',
-                                                               'JOBSTATUS' : 'glite-ce-job-status JOBID'
+        self.UTILS_CLI  = {       'CREAM'  :  {                   'SUBMIT' : 'glite-ce-job-submit -n  -r ENDPOINT -a JDL',
+                                                               'JOBSTATUS' : 'glite-ce-job-status JOBID',
+                                                            'SERVICEINFO'  : 'glite-ce-service-info ENDPOINT'
                                               },
-                                     'WMS' :  {                   'SUBMIT' : 'glite-wms-job-submit -d  -r ENDPOINT -a JDL',
-                                                               'JOBSTATUS' : 'glite-wms-job-status JOBID'
+                                     'WMS' :  {                   'SUBMIT' : 'glite-wms-job-submit --nomsg  -e ENDPOINT -a JDL',
+                                                               'JOBSTATUS' : 'glite-wms-job-status JOBID',
+                                                                  'CHECK'  :  'uberftp ENDPOINT ls |grep -c logged'
                                               },
                                      'SRM' :  {                     'PING' : 'clientSRM ping -e httpg://ENDPOINT:8444',
                                                                   'MKDIR'  : 'srmmkdir -2 -debug srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH',
@@ -108,7 +109,7 @@ class commonconf:
                           }
               
         self.ID=''
-        self.NUM_STATUS_RETRIEVALS=120
+        self.NUM_STATUS_RETRIEVALS=10
         self.SLEEP_TIME=30
         self.DELEGATION_OPTIONS=''
         self.DEFAULTREQ=''
@@ -149,6 +150,18 @@ class commonconf:
         logger2.setLevel(logging.DEBUG)
 
    
+   def tagset_init(self,TAGLIST=['ALL']):
+    #macro to initialize tagset
+      try:
+             self.logger.debug(" Initializing tagset")
+             tagset=set()
+             for tag in TAGLIST:
+                tagset.add(tag)
+             return tagset
+      except Exception,e:
+             self.logger.error('Error while initializing tagset. \tException:' + str(e) )
+             return -1
+
 
    def check_proxy(self):
    #CHECK Existence of proxy for given VO
@@ -171,42 +184,21 @@ class commonconf:
    # Run command "args", if "fail" is set we expect a command failure (ret code != 0)
    # If command fails (or if "fail"=1 and it not fails), exit with failure 
    # returns command's output
-   #     self.logger.debug('Run command: %s'%(args))
-        OUTPUT=commands.getstatusoutput(args)
-        if fail==0 and OUTPUT[0]!=0 :
-   #         self.logger.error('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
-            raise  NameError('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
-        elif fail==1 and OUTPUT[0]==0:
-   #         self.logger.error('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
-            raise NameError('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
-   #     self.logger.info('Command output:\n%s'%OUTPUT[1],'DEBUG')
-        if fail==0:
-            self.logger.debug('Command success')
-        else:
-            self.logger.debug('Command successfully failed')
-        return OUTPUT
-        
-   def run_command_until(self,args,condition,fail=0):
-    # Run command "args", if "fail" is set we expect a command failure (ret code != 0)
-    # If command fails (or if "fail"=1 and it not fails), exit with failure 
-    # returns command's output
         self.logger.debug('Run command: %s'%(args))
         OUTPUT=commands.getstatusoutput(args)
         if fail==0 and OUTPUT[0]!=0 :
-            self.logger.error('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
-            raise NameError('Command %s failed. Failure message: %s'%(args,OUTPUT[1]))
+            raise  NameError('Command %s failed. Failure message:' %args)
         elif fail==1 and OUTPUT[0]==0:
-            self.logger.error('Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
-            raise NameError('','Command %s not failed as expected. Command output: %s'%(args,OUTPUT[1]))
-        self.logger.debug('Command output:\n%s'%(OUTPUT[1]),'DEBUG')
+            raise NameError('Command %s not failed as expected.' %args)
+        self.logger.info('Command output:\n' + OUTPUT[1])
         if fail==0:
             self.logger.debug('Command success')
         else:
             self.logger.debug('Command successfully failed')
         return OUTPUT
-
+       
    def atomic_test_exec_report(self,product,testtag,testdescription,command):
-    # Report test result 
+      # Report test result 
       self.logger.debug("PROD=" + product + " | TESTTAG=" + testtag + " | TESTDESCRIPTION=" + testdescription)
       self.loggerresults.info("PROD=" + product + " | TESTTAG=" + testtag + " | TESTDESCRIPTION=" + testdescription)
       self.logger.debug("Executing command:\t" + command)
@@ -220,3 +212,55 @@ class commonconf:
          self.loggerresults.info("Command output+++++:\n" + str(OUTPUT[1]))
       return OUTPUT[0]
 
+   def jobsubmit_test_exec_report(self,product,testtag,testdescription,command):
+      # Report test result 
+      self.logger.debug("PROD=" + product + " | TESTTAG=" + testtag + " | TESTDESCRIPTION=" + testdescription)
+      self.loggerresults.info("PROD=" + product + " | TESTTAG=" + testtag + " | TESTDESCRIPTION=" + testdescription)
+      self.logger.debug("Executing command:\t" + command)
+      OUTPUT=self.run_command(command)
+      self.logger.debug("Command Output:\t" + str(OUTPUT[1]))
+      if OUTPUT[0]==0:
+         self.loggerresults.info("RESULT: SUCCESS")
+         self.loggerresults.info("Command output+++++:\n" + str(OUTPUT[1]))
+      else:
+         self.loggerresults.info("RESULT: FAIL")
+         self.loggerresults.info("Command output+++++:\n" + str(OUTPUT[1]))
+      return (OUTPUT[0],OUTPUT[1])
+
+   def waituntilterminalstatus_test_exec_report(self,product,testtag,testdescription,command,terminalstata,expectedstatus):
+      # Report test result 
+      'outputcondition must be a string which we expect to find in the output'
+      self.logger.debug("PROD=" + product + " | TESTTAG=" + testtag + " | TESTDESCRIPTION=" + testdescription)
+      self.loggerresults.info("PROD=" + product + " | TESTTAG=" + testtag + " | TESTDESCRIPTION=" + testdescription)
+      self.logger.debug("Executing command:\t" + command)
+      OUTPUT=self.run_command(command)
+      self.logger.debug("Command Output:\t" + str(OUTPUT[1]))
+      counter = 0
+
+      terminalflag=0
+      while (OUTPUT[0] ==0) and terminalflag==0 :
+            if counter >= int(self.NUM_STATUS_RETRIEVALS) :
+                self.logger.debug("Timeout reached while waiting the job to finish")  
+                raise  NameError("Timeout reached while waiting the job to finish")
+            self.logger.debug('*INFO* Jobstatus ... sleeping %s seconds ( %s/%s )'%(self.SLEEP_TIME,counter,self.NUM_STATUS_RETRIEVALS))
+            time.sleep(int(self.SLEEP_TIME))
+            counter=counter+1
+            OUTPUT=self.run_command(command)
+            self.logger.debug("Command Output:\t" + str(OUTPUT[1]))
+            for x in terminalstata:
+                if OUTPUT[1].find(x)!=-1:
+                   self.logger.debug("Job in terminal status")
+                   terminalflag=1
+                   break
+         
+      if OUTPUT[0] == 0 :   
+         if OUTPUT[1].find(expectedstatus) != -1 :
+             self.loggerresults.info("RESULT: SUCCESS")
+             self.loggerresults.info("Command output+++++:\n" + str(OUTPUT[1]))
+         else :
+             self.loggerresults.info("RESULT: FAIL")
+             self.loggerresults.info("Command output+++++:\n" + str(OUTPUT[1]))
+      else:
+         self.loggerresults.info("COMMAND FAILS")
+         self.loggerresults.info("Command output+++++:\n" + str(OUTPUT[1]))
+      return OUTPUT[0]

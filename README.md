@@ -19,7 +19,7 @@ FileStructure:
 -----------------------------------------------------------------------------------
 ├── EMITestbed.py               ----> MAIN Function
 
-USAGE $> python  EMITestbed.py LFC
+USAGE $> python EMITestbed.py [-t TAGDEFINEDFORPRODUCT] LFC
 -> Only one product per program execution.
 After some setup and checks, it instantiates the requested Product class and runs the two methods defined in each Product class: testclass.run()  and testclass.check_results()
 
@@ -40,6 +40,9 @@ ALL commob configuration info and methods are in this class, in particular:
 - METHOD: Logging setup: logger_setup, loggerresults_setup
 - METHOD: run_command, runs a generic command passed in args
 - METHOD: run_command_until, runs a generic command until condition
+- METHOD: jobsubmit
+- METHOD: waitjobuntilterminalstatus
+- METHOD......
 
 -----------------------------------------------------------------------------------
 │── LIB/LFC_class.py            ----> CLass implementing a test for a given product

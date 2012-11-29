@@ -6,11 +6,7 @@ import sets
 class LFC:
    '''Class implementing basic integration tests for product: LFC
       Input args: 
-       - CONFFILES : Dictionary including path of files needed for tests
-       - TESTBED   : Dictionary including hosts endpoints for all products involved in the tests and relative conf info
-       - UTILS_CLI : Dictionary including cli commands available on UI to test productspath of files needed for tests
-       - TAGSET    : Set of TAGS defined for available tests ('ALL') is default  
-   '''
+       - CONFFILES : Dictionary including path of files needed for tests   '''
 
    def __init__(self,conf):
       self.PRODUCT = 'LFC'    
@@ -19,8 +15,11 @@ class LFC:
    def run_test(self,conf):
        
       try:
-          TAGTEST1=set()
-          TAGTEST1.add('INTEGRATION')
+
+          TAGTEST1=conf.tagset_init(['INTEGRATION','UI'])
+          if TAGTEST1==-1:
+             raise NameError("Unable to initialize tagset")
+
           if conf.TAGREQ.issuperset(['ALL']) or (len(TAGREQ.intersection(TAGTEST1))>0) :
              for iresource in range(0,self.NUMHOST):
                      try: 

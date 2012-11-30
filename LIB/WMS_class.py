@@ -58,7 +58,7 @@ class WMS:
           for iresource in range(0,self.NUMHOST):
 	             try:
 		             conf.logger.debug(" CHECKING resource: " + str(conf.TESTBED['WMS']['RESOURCES'][iresource].split('/')[2].split(':')[0]))
-		             command=str(conf.UTILS_CLI['CREAM']['CHECK'])
+		             command=str(conf.UTILS_CLI['WMS']['CHECK'])
 		             command=command.replace('ENDPOINT',str(conf.TESTBED['WMS']['RESOURCES'][iresource].split('/')[2].split(':')[0]))
 		             conf.logger.info("Executing command:" + command)
 		             OUTPUT=conf.run_command(command)

@@ -42,7 +42,8 @@ class commonconf:
                            
                            'STORM': {'RESOURCES': ['emitestbed03.cnaf.infn.it', 'emitestbed25.cnaf.infn.it'],
                                          'VODIR': ['testers.eu-emi.eu', 'testers.eu-emi.eu'],
-                                      'DESTPATH': ['destpathtest/file1', 'destpathtest/file1']
+                                      'DESTPATH': ['destpathtest/file1', 'destpathtest/file1'],
+                                   'DESTGUCPATH': ['/tmp/file1', '/tmp/file1']
                                      },
                            
                            'WMS' :  {'RESOURCES': ['https://cert-08.cnaf.infn.it:7443/glite_wms_wmproxy_server',
@@ -61,7 +62,9 @@ class commonconf:
                                     'SITE_NAME': 'cert-tb-cern'
                                    },
                                     
-                        'DCACHE' : {'RESOURCES': ['cork.desy.de']
+                        'DCACHE' : {'RESOURCES': ['cork.desy.de'],
+                                       'VODIR' : ['/pnfs/desy.de/data/testers.eu-emi.eu'],
+                                     'DESTPATH': ['destpathtest', 'destpathtest'],
                                    },
                                    
                            'LFC' : {'RESOURCES': ['emi2rc-sl5-lfc.cern.ch:/grid/testers.eu-emi.eu/'],
@@ -82,23 +85,33 @@ class commonconf:
                                      'SRM' :  {                     'PING' : 'clientSRM ping -e httpg://ENDPOINT:8444',
                                                                   'MKDIR'  : 'srmmkdir -2 -debug srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH',
                                                                       'RM' : 'srmrm  srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH',
-                                                                   'RMDIR' : 'srmrmdir  srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH'  
+                                                                   'RMDIR' : 'srmrmdir  srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH', 
+                                                                      'LS' : 'srmls -2 srm://ENDPOINT:8443/VODIR/',
+                                                                      'CP' : 'srmcp -2 srm://ENDPOINT:8443/VODIR/DESTFILE file:///`pwd`/TESTFILE'
                                               },
                                   'GLOBUS' :  {                      'GUC' : 'globus-url-copy file://`pwd`/TESTFILE   gsiftp://ENDPOINT:2811/DESTPATH' 
                                               },
                                     'LDAP' :  {           'SEARCHRESOURCE' : 'ldapsearch -x -H ldap://ENDPOINT:2170/ -b mds-vo-name=resource,o=grid',
                                                            'SEARCHTOPBDII' : 'ldapsearch -x -H  ldap://BDII_TOP -b mds-vo-name=local,o=grid',
-                                                          'SEARCHSITEBDII' : 'ldapsearch -x -H  ldap://BDII_SITE -b mds-vo-name=BDII_SITE_NAME,o=grid' ,
-                                                         'SEARCH_SITE_OBJ' : "ldapsearch -x -H  ldap://BDII_SITE -b mds-vo-name=BDII_SITE_NAME,o=grid 'objectclass: GlueTop' "
+                                                          'SEARCHSITEBDII' : 'ldapsearch -x -H  ldap://BDII_SITE -b mds-vo-name=SITE_NAME,o=grid' ,
+                                                         'SEARCH_SITE_OBJ' : "ldapsearch -x -H  ldap://BDII_SITE -b mds-vo-name=SITE_NAME,o=grid 'objectclass: GlueTop' "
                                               },
-                                'LCGUTILS' :  {                       'LS' : 'lcg-ls -v -l -b -D srmv2 srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH',
-                                                                      'CP' : 'lcg-cp -b --verbose -D srmv2 file://SOURCEPATH`pwd`/TESTFILE srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH',
-                                                               'INFOSITES' : 'lcg-infosites --vo VOMS all',
-                                                            'INFOSITES_CE' : 'lcg-infosites --vo VOMS ce',
-                                                            'INFOSITES_SE' : 'lcg-infosites --vo VOMS se',
-                                                               'INFO_CE'   : 'lcg-info --list-ce --vo VOMS',
-                                                               'INFO_SE'   : 'lcg-info --list-se --vo VOMS'
+                                'LCGUTILS' :  {                       'LS_SRM' : 'lcg-ls -v -l -b -D srmv2 srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH',
+                                                                      'CP_SRM' : 'lcg-cp -b --verbose -D srmv2 file://`pwd`/TESTFILE srm://ENDPOINT:8444/srm/managerv2?SFN=/DESTPATH',
+                                                                         'LS' : 'lcg-ls --verbose ENDPOINT',
+                                                                     'CR_LFN' : 'lcg-cr -l lfn:/grid/VOMS/DESTFILE  -d ENDPOINT file:///`pwd`/TESTFILE',
+                                                                     'LR_LFN' : 'lcg-lr lfn:/grid/VOMS/TESTFILE',
+                                                                    'DEL_LFN' : 'lcg-del -a lfn:/grid/VOMS/TESTFILE',
+                                                                  'INFOSITES' : 'lcg-infosites --vo VOMS all',
+                                                               'INFOSITES_CE' : 'lcg-infosites --vo VOMS ce',
+                                                               'INFOSITES_SE' : 'lcg-infosites --vo VOMS se',
+                                                          'INFOSITES_BDIITOP' : 'lcg-infosites --vo VOMS bdii_top',
+                                                         'INFOSITES_BDIISITE' : 'lcg-infosites --vo VOMS bdii_site',
+                                                                  'INFO_CE'   : 'lcg-info --list-ce --vo VOMS',
+                                                                  'INFO_SE'   : 'lcg-info --list-se --vo VOMS',
+                                                        'INFO_SE_ATTR_NAME'   : 'lcg-info --list-se --attrs SEName',
                                                 },
+
                                    'VOMS'  :   {               'PROXYINFO' : 'voms-proxy-info -all',
                                                                'PROXYCHECK': 'voms-proxy-info -vo -exists -hours 6'
                                                 }, 
